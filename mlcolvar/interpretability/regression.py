@@ -38,7 +38,7 @@ def predict_fn(X: np.ndarray, weights: np.ndarray, intercept: float = 0.0) -> np
 
 def loss_fn(X: np.ndarray, y: np.ndarray, weights: np.ndarray, intercept: float = 0.0) -> float:
     y_pred = predict_fn(X, weights, intercept)
-    return np.mean((y - y_pred)**2)
+    return 0.5*np.mean((y - y_pred)**2)
 
 def grad_loss_fn(X_and_ones: np.ndarray, y: np.ndarray, weights_and_intercept: np.ndarray) -> np.ndarray:
     return -2 * np.mean((y - X_and_ones@weights_and_intercept)[:, np.newaxis] * X_and_ones, axis = 0) #shape (n_features + 1,), 1 for intercept
