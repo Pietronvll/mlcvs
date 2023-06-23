@@ -31,6 +31,7 @@ dependencies = [
     "lightning",
     "torch",
     "numpy",
+    "scipy>=1.8.0",
     "pandas",
     "matplotlib",
     "KDEpy"
