@@ -22,10 +22,15 @@ def fit_fn(X: np.ndarray, y: np.ndarray, reg: float, options:ExplainerOptions, w
     if not options.fit_intercept:
         w = np.append(w, 0.0)
 
-    model = ExplainerModel(w[:-1], w[-1], reg, n_iter, stop_crit, predict_fn, loss_fn, feature_mean = np.zeros(n_features), feature_std = np.ones(n_features))
-
-    if task == 'classification':
-        lipschitz = lipschitz / 4.
+    model = ExplainerModel( 
+                w[:-1], 
+                w[-1], 
+                reg, 
+                predict_fn, 
+                R2, 
+                feature_mean, 
+                feature_std)
+    return model
 
 def predict_fn(X: np.ndarray, weights: np.ndarray, intercept: float = 0.0) -> np.ndarray:
     return X @ weights + intercept
@@ -45,3 +50,6 @@ def mse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
 def mae(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return np.mean(np.abs(y_true - y_pred))
+
+def R2(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    return 1 - np.sum((y_true - y_pred)**2) / np.sum((y_true - np.mean(y_true))**2

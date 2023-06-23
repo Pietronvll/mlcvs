@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Callable, Optional
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 @dataclass
 class ExplainerOptions:
@@ -25,10 +27,20 @@ class ExplainerOptions:
     tol: float = 1e-5
 
 class ExplainerModel:
-    def __init__(self, weights: np.ndarray, intercept: float, reg: float, predict_fn: Callable, score_fn: Callable, feature_mean: Optional[np.ndarray] = None, feature_std: Optional[np.ndarray] = None):
+    def __init__(self, 
+                 weights: np.ndarray, 
+                 intercept: float, 
+                 reg: float, 
+                 predict_fn: Callable, 
+                 score_fn: Callable, 
+                 feature_mean: Optional[np.ndarray] = None, 
+                 feature_std: Optional[np.ndarray] = None,
+                 feature_names: Optional[np.ndarray] = None
+        ):
         self.weights = weights
         self.intercept = intercept
         self.reg = reg
+        self.feature_names = np.array([f'x{i}' for i in range(len(weights))]) if feature_names is None else feature_names
         
         self._predict_fn = predict_fn
         self._score_fn = score_fn
@@ -47,8 +59,21 @@ class ExplainerModel:
     
     @property
     def feature_importance(self) -> np.ndarray:
-        raise NotImplementedError
+        _w = (self.weights**2) / np.sum(self.weights**2)
+        return [{'name': self.feature_names[i], 'importance': _w[i]} for i in self.nonzero_idxs]
     
+    def plot_feature_importance(self):
+        vals = [self.weights[i] for i in self.nonzero_idxs]
+        names = [self.feature_names[i] for i in self.nonzero_idxs]
+        fig, ax = plt.subplots(figsize=(9, 7))
+        coefs = pd.DataFrame(
+            vals, columns=["Coefficients"], index=names
+        )
+        ax = coefs.plot(kind="barh", ax=ax, title="Feature importances", legend=False)
+        ax.axvline(x=0, color=".5")
+        fig.tight_layout()
+        return fig, ax
+        
     @property
     def nonzero_idxs(self) -> np.ndarray:
         return np.nonzero(self.weights)[0]
