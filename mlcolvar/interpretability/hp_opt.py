@@ -38,7 +38,7 @@ def sample_quasimc(min_val: float, max_val: float, num_samples: int, log_samplin
         sample = min_val + sample_01*(max_val - min_val)
     return sample
 
-def optimize_explainer_model(X:np.ndarray, y:np.ndarray, fit_fn: Callable, error_fn: Callable, options: ExplainerOptions, report_progress: bool = True):
+def optimize_explainer_model(X:np.ndarray, y:np.ndarray, fit_fn: Callable, error_fn: Callable, feature_names: Optional[np.ndarray] = None, options: ExplainerOptions = ExplainerOptions(), report_progress: bool = True):
     num_samples, _ = X.shape
     trials = []
     best_trial_idx = 0
@@ -57,9 +57,9 @@ def optimize_explainer_model(X:np.ndarray, y:np.ndarray, fit_fn: Callable, error
             X_val, y_val = X[val_idxs], y[val_idxs]
             
             if options.warm_start and trial_idx > 0:
-                model = fit_fn(X_train, y_train, reg, options, w_start = trials[trial_idx - 1]['weights']) #Warm start with the previous model
+                model = fit_fn(X_train, y_train, reg, options, w_start = trials[trial_idx - 1]['weights'], feature_names = feature_names) #Warm start with the previous model
             else:
-                model = fit_fn(X_train, y_train, reg, options)
+                model = fit_fn(X_train, y_train, reg, options, feature_names = feature_names)
 
             #Validation
             y_pred = model.predict(X_val)
@@ -78,7 +78,7 @@ def optimize_explainer_model(X:np.ndarray, y:np.ndarray, fit_fn: Callable, error
             print(f'Trial {trial_idx+1}/{options.num_trials} - reg: {reg:.3e} - best trial: {best_trial_idx + 1} - best score:{trials[best_trial_idx]["score"]:.3e}')
 
     #Refit the best model on the entire dataset
-    model = fit_fn(X, y, trials[best_trial_idx]['reg'], options, w_start = trials[best_trial_idx]['weights'])
+    model = fit_fn(X, y, trials[best_trial_idx]['reg'], options, w_start = trials[best_trial_idx]['weights'], feature_names = feature_names)
 
     #Return the best model
     if options.return_all_trials:

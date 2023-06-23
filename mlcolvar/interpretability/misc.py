@@ -3,6 +3,9 @@ from typing import Callable, Optional
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from mlcolvar.interpretability.hp_opt import optimize_explainer_model
+import mlcolvar.interpretability.classification as ic
+import mlcolvar.interpretability.regression as ir
 
 @dataclass
 class ExplainerOptions:
@@ -85,7 +88,6 @@ class ExplainerModel:
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
         y_pred = self.predict(X)
         return self._score_fn(y, y_pred)
-    
 
 def soft_threshold(w: np.ndarray, u: float) -> np.ndarray:
     return np.sign(w) * np.max(np.abs(w) - u, np.zeros_like(w))
@@ -122,26 +124,15 @@ def L1_fista_solver(X: np.ndarray, y: np.ndarray, reg:float, grad_fn:Callable, l
 
 def explain(descriptors: np.ndarray, labels: np.ndarray, feature_names: np.ndarray, categorical_labels: bool = False, options: ExplainerOptions = ExplainerOptions()):
     if categorical_labels:
-        return explain_categorical(descriptors, labels, feature_names, options = options)
+        return explain_boolean(descriptors, labels, feature_names, options = options)
     else:
         return explain_scalar(descriptors, labels, feature_names, options = options)
 
 def explain_scalar(descriptors: np.ndarray, labels: np.ndarray, feature_names: np.ndarray, options: ExplainerOptions = ExplainerOptions()):
-    _ = get_explainer_model(descriptors, labels, fit_scalar_lasso, options)
+    model, _ = optimize_explainer_model(descriptors, labels, ir.fit_fn, ir.mape, feature_names, options = options, report_progress: bool = True)
 
-def explain_categorical(descriptors: np.ndarray, labels: np.ndarray, feature_names: np.ndarray, options: ExplainerOptions = ExplainerOptions()):
-    datasets = partition_categorical(descriptors, labels)
-    for (X, y) in datasets:
-        _ = get_explainer_model(X, y, fit_categorical_lasso, options)
+def explain_boolean(descriptors: np.ndarray, labels: np.ndarray, feature_names: np.ndarray, options: ExplainerOptions = ExplainerOptions()):
+    model, _ = optimize_explainer_model(descriptors, labels, ic.fit_fn, ic.perc_error, feature_names, options = options, report_progress: bool = True)
 
 def partition_categorical(descriptors: np.ndarray, labels: np.ndarray):
     pass
-
-
-
-def fit_scalar_lasso(X: np.ndarray, y: np.ndarray, reg: float = 1.0):
-    pass
-
-def fit_categorical_lasso(X: np.ndarray, y: np.ndarray, reg: float = 1.0):
-    pass
-    

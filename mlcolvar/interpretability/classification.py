@@ -4,7 +4,7 @@ import logging
 from scipy.special import expit, log_expit
 from mlcolvar.interpretability.misc import ExplainerOptions, ExplainerModel, L1_fista_solver
 
-def fit_fn(X: np.ndarray, y: np.ndarray, reg: float, options:ExplainerOptions, w_start: Optional[np.ndarray] = None) -> ExplainerModel:
+def fit_fn(X: np.ndarray, y: np.ndarray, reg: float, options:ExplainerOptions, w_start: Optional[np.ndarray] = None, feature_names: Optional[np.ndarray] = None) -> ExplainerModel:
     n_samples, n_features = X.shape
     #Compute Lipschitz constant
     lipschitz = np.linalg.norm(X, ord = 2) ** 2 / (n_samples * 4.)
@@ -29,7 +29,8 @@ def fit_fn(X: np.ndarray, y: np.ndarray, reg: float, options:ExplainerOptions, w
                 predict_fn, 
                 accuracy, 
                 feature_mean, 
-                feature_std)
+                feature_std,
+                feature_names=feature_names)
     return model
 
 #I assume labels in y are 0 and 1
