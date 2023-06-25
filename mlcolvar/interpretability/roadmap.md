@@ -25,7 +25,6 @@
 4. `nonzero_idxs`
 5. `predict`
 6. `score`
-7. 
 #### HP optimization
 1. `optimize_explainer_model` with/without feature names
 2. `optimize_explainer_model` with/without report progress
