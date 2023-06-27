@@ -1,7 +1,7 @@
 from typing import Callable, Optional
-from mlcolvar.interpretability.misc import ExplainerOptions
 import numpy as np
 from scipy.stats.qmc import Sobol
+from mlcolvar.interpretability.misc import ExplainerOptions
 
 def interpretability_loss(num_nonzero: int, error: float, utility_per_feature: float =1.):
     #An error decrease by `utility_per_feature` reduce the loss equally as removing one feature

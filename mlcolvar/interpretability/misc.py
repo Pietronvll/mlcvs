@@ -3,9 +3,6 @@ from typing import Callable, Optional
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import mlcolvar.interpretability.classification as ic
-import mlcolvar.interpretability.regression as ir
-from mlcolvar.interpretability.hp_opt import optimize_explainer_model
 
 @dataclass
 class ExplainerOptions:
@@ -90,7 +87,7 @@ class ExplainerModel:
         return self._score_fn(y, y_pred)
 
 def soft_threshold(w: np.ndarray, u: float) -> np.ndarray:
-    return np.sign(w) * np.max(np.abs(w) - u, np.zeros_like(w))
+    return np.sign(w) * np.maximum(np.abs(w) - u, np.zeros_like(w))
 
 #Todo: add no-grad option
 def L1_fista_solver(X: np.ndarray, y: np.ndarray, reg:float, grad_fn:Callable, lipschitz: float, w_init: Optional[np.ndarray] = None, max_iter: int = 100, tol: float = 1e-4):
@@ -101,38 +98,22 @@ def L1_fista_solver(X: np.ndarray, y: np.ndarray, reg:float, grad_fn:Callable, l
     z = w_init.copy() if w_init is not None else np.zeros(n_features)
 
     for n_iter in range(max_iter):
-        t_old = t_new
-        t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
-        w_old = w.clone()
-
+        w_old = w.copy()
         grad = grad_fn(X, y, z)
         
-        step = 1 / lipschitz
+        step = 1. / lipschitz
         z -= step * grad
         w = soft_threshold(z, reg * step)
+
+        t_old = t_new
+        t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
         z = w + (t_old - 1.) / t_new * (w - w_old)
         
         #Optimality criterion:
         zero_coeffs = np.maximum(np.abs(grad) - reg, np.zeros_like(w))
-        nonzero_coeffs = np.abs(grad + np.sign(w))*reg
+        nonzero_coeffs = np.abs(grad + np.sign(w)*reg)
         opt = np.where(w != 0, nonzero_coeffs, zero_coeffs)
         stop_crit = np.max(opt)
         if stop_crit < tol:
             break
     return w, stop_crit, n_iter + 1
-    
-
-def explain(descriptors: np.ndarray, labels: np.ndarray, feature_names: np.ndarray, categorical_labels: bool = False, options: ExplainerOptions = ExplainerOptions()):
-    if categorical_labels:
-        return explain_boolean(descriptors, labels, feature_names, options = options)
-    else:
-        return explain_scalar(descriptors, labels, feature_names, options = options)
-
-def explain_scalar(descriptors: np.ndarray, labels: np.ndarray, feature_names: np.ndarray, options: ExplainerOptions = ExplainerOptions()):
-    model, _ = optimize_explainer_model(descriptors, labels, ir.fit_fn, ir.mape, feature_names, options = options, report_progress = True)
-
-def explain_boolean(descriptors: np.ndarray, labels: np.ndarray, feature_names: np.ndarray, options: ExplainerOptions = ExplainerOptions()):
-    model, _ = optimize_explainer_model(descriptors, labels, ic.fit_fn, ic.perc_error, feature_names, options = options, report_progress = True)
-
-def partition_categorical(descriptors: np.ndarray, labels: np.ndarray):
-    pass

@@ -53,9 +53,10 @@ def loss_fn(X: np.ndarray, y: np.ndarray, weights: np.ndarray, intercept: float 
     return loss.mean()
 
 def grad_loss_fn(X_and_ones: np.ndarray, y: np.ndarray, weights_and_intercept: np.ndarray) -> np.ndarray:
+    num_samples = X_and_ones.shape[0]
     y_pred = X_and_ones @ weights_and_intercept
     y = _transform_labels(y)
-    return -X_and_ones.T @ (y * expit(-y * y_pred)) #shape (n_features + 1,), 1 for intercept
+    return -(num_samples**-1)*X_and_ones.T @ (y * expit(-y * y_pred)) #shape (n_features + 1,), 1 for intercept
 
 def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return np.mean(y_true == y_pred)

@@ -53,4 +53,4 @@ def mae(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return np.mean(np.abs(y_true - y_pred))
 
 def R2(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    return 1 - np.sum((y_true - y_pred)**2) / np.sum((y_true - np.mean(y_true))**2
+    return 1 - np.sum((y_true - y_pred)**2) / np.sum((y_true - np.mean(y_true)))**2

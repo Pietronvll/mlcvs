@@ -1,10 +1,8 @@
 from mlcolvar.interpretability.hp_opt import optimize_explainer_model
 import mlcolvar.interpretability.regression as ir
+from mlcolvar.interpretability.misc import ExplainerOptions
 import numpy as np
 import pytest
-
-
-optimize_explainer_model(X:np.ndarray, y:np.ndarray, fit_fn: Callable, error_fn: Callable, feature_names: Optional[np.ndarray] = None, options: ExplainerOptions = ExplainerOptions(), report_progress: bool = True):
 
 def mock_regression_data(n_samples = 200, n_features = 100, intercept = 0.0, noise = 0.01):
     assert n_features > 10
@@ -60,7 +58,7 @@ def test_hpopt_regression(log_sampling, warm_start, sampler, report_progress, wi
         feature_names = mock_feature_names()
     else:
         feature_names = None
-    model = optimize_explainer_model(X_train, 
+    model, _ = optimize_explainer_model(X_train, 
                                      y_train, 
                                      ir.fit_fn, 
                                      ir.mae, 
