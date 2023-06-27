@@ -6,7 +6,6 @@ import logging
 
 def mock_regression_data(n_samples = 200, n_features = 100, intercept = 0.0, noise = 0.01):
     assert n_features > 10
-
     rng = np.random.default_rng(42)
     X = rng.standard_normal((n_samples, n_features))
     # Decreasing coef w. alternated signs for visualization

@@ -3,9 +3,9 @@ from typing import Callable, Optional
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from mlcolvar.interpretability.hp_opt import optimize_explainer_model
 import mlcolvar.interpretability.classification as ic
 import mlcolvar.interpretability.regression as ir
+from mlcolvar.interpretability.hp_opt import optimize_explainer_model
 
 @dataclass
 class ExplainerOptions:

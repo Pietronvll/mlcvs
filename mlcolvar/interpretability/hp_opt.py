@@ -42,9 +42,9 @@ def optimize_explainer_model(X:np.ndarray, y:np.ndarray, fit_fn: Callable, error
     num_samples, _ = X.shape
     trials = []
     best_trial_idx = 0
-    if options.sampler == 'grid':
+    if options.sampler.lower == 'grid':
         reg_samples = sample_grid(options.min_reg, options.max_reg, options.num_trials, options.log_sampling)
-    elif options.sampler == 'quasimc':
+    elif options.sampler.lower() == 'quasimc':
         reg_samples = sample_quasimc(options.min_reg, options.max_reg, options.num_trials, options.log_sampling, options.rng_seed)
     else:
         raise ValueError(f'Unknown sampler {options.sampler}. Valid samplers are "grid" and "quasimc"')
