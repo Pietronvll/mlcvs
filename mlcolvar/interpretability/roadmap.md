@@ -1,6 +1,8 @@
 ## Interpretability roadmap
 
-- [ ] Test the FISTA solver on classical benchmarks
+- [x] Test the FISTA solver on classical benchmarks
+    - [ ] Regression seems to work well, however if the reg strength is not tuned properly it might diverge. Check if there are some known min-max values.
+    - [ ] Classification converge to something but does not recover the correct coefficient. Check if there are errors.
 - [x] Add warnings about `num_iter` and `tol`, if the optimization did not succeed
 - [x] Add tools to extract the feature indices and the feature importance
 - [ ] Add tools to partition the classification problems into binary ones
