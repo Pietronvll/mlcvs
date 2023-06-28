@@ -48,7 +48,7 @@ def mock_feature_names(n_features = 100):
 
 @pytest.mark.parametrize("log_sampling", [True, False])
 @pytest.mark.parametrize("warm_start", [True, False])
-@pytest.mark.parametrize("sampler", ["grid", "random"])
+@pytest.mark.parametrize("sampler", ["grid", "quasimc"])
 @pytest.mark.parametrize("report_progress", [True, False])
 @pytest.mark.parametrize("with_feature_names", [True, False])
 def test_hpopt_regression(log_sampling, warm_start, sampler, report_progress, with_feature_names):

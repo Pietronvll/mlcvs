@@ -98,15 +98,17 @@ def L1_fista_solver(X: np.ndarray, y: np.ndarray, reg:float, grad_fn:Callable, l
     z = w_init.copy() if w_init is not None else np.zeros(n_features)
 
     for n_iter in range(max_iter):
+        t_old = t_new
+        t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
+
         w_old = w.copy()
         grad = grad_fn(X, y, z)
-        
+
         step = 1. / lipschitz
         z -= step * grad
         w = soft_threshold(z, reg * step)
 
-        t_old = t_new
-        t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
+        
         z = w + (t_old - 1.) / t_new * (w - w_old)
         
         #Optimality criterion:

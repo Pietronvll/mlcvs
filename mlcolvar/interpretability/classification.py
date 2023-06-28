@@ -6,8 +6,6 @@ from mlcolvar.interpretability.misc import ExplainerOptions, ExplainerModel, L1_
 
 def fit_fn(X: np.ndarray, y: np.ndarray, reg: float, options:ExplainerOptions, w_start: Optional[np.ndarray] = None, feature_names: Optional[np.ndarray] = None) -> ExplainerModel:
     n_samples, n_features = X.shape
-    #Compute Lipschitz constant
-    lipschitz = np.linalg.norm(X, ord = 2) ** 2 / (n_samples * 4.)
     #Scale data
     feature_mean = np.mean(X, axis = 0)
     feature_std = np.std(X, axis = 0)
@@ -15,6 +13,8 @@ def fit_fn(X: np.ndarray, y: np.ndarray, reg: float, options:ExplainerOptions, w
     #Add intercept if needed
     if options.fit_intercept:
         X = np.concatenate((X, np.ones((n_samples, 1))), axis = 1)
+    #Compute Lipschitz constant
+    lipschitz = np.linalg.norm(X, ord = 2) ** 2 / (n_samples * 4.)
     w, stop_crit, n_iter = L1_fista_solver(X, y, reg, grad_loss_fn, lipschitz, w_init = w_start, max_iter = options.max_iter, tol = options.tol)
     if n_iter == options.max_iter:
         logging.warn(f'FISTA did not converge after {options.max_iter} iterations. Stopped at {stop_crit}.')

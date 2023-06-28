@@ -3,6 +3,7 @@ import mlcolvar.interpretability.regression as ir
 import mlcolvar.interpretability.classification as ic
 import numpy as np
 import logging
+import pytest
 logging.basicConfig(level = logging.INFO, force=True)
 
 def mock_regression_data(n_samples = 1000, n_features = 100, intercept = 0.0, noise = 0.01):
@@ -47,10 +48,10 @@ def mock_classification_data(n_samples = 1000, n_features = 100):
 def test_fista_lasso_regression():
     X_train, y_train, X_test, y_test = mock_regression_data()
     n_samples, n_features = X_train.shape
-    w_init = np.zeros_like(X_train[0])
     grad_fn = ir.grad_loss_fn
+
     lipschitz = (np.linalg.norm(X_train, ord = 2) ** 2) / n_samples
-    w, stop_cr, n_iter = L1_fista_solver(X_train, y_train, 0.1, grad_fn, lipschitz, w_init, max_iter = 500, tol = 1e-7)
+    w, stop_cr, n_iter = L1_fista_solver(X_train, y_train, 0.01, grad_fn, lipschitz, max_iter = 500, tol = 1e-7)
     assert stop_cr < 1e-7
     assert n_iter < 1000
     assert w.shape == (n_features,)
@@ -59,34 +60,31 @@ def test_fista_lasso_regression():
     w_true = ((-1) ** idx) * np.exp(-idx / 10)
     w_true[10:] = 0  # sparsify w_true
 
-    logging.info(f"n_iter = {n_iter}, stop_cr = {stop_cr}, w = {w}, w_true = {w_true}")
     #Testing
     y_pred = ir.predict_fn(X_test, w)
     mse = ir.mse(y_test, y_pred)
     mae = ir.mae(y_test, y_pred)
     mape = ir.mape(y_test, y_pred)
-    R2 = ir.R2(y_test, y_pred)
-    logging.info(f"MSE: {mse}\nMAE: {mae}MAPE:{mape}\nR2: {R2}")
-    logging.info(f"Coefficient error: {np.linalg.norm(w - w_true)}")
+    logging.info(f"\nn_iter: {n_iter}\nstop_cr: {stop_cr:.3e}\nMSE: {mse:.3e}\nMAE: {mae:.3e}\nMAPE:{mape:.3e}\nCoefficient error: {np.linalg.norm(w - w_true):.3e}")
+
 
 def test_fista_lasso_classification():
     X_train, y_train, X_test, y_test = mock_classification_data()
     n_samples, n_features = X_train.shape
     w_init = np.zeros_like(X_train[0])
     grad_fn = ic.grad_loss_fn
+
     lipschitz = (np.linalg.norm(X_train, ord = 2) ** 2) / (4.*n_samples)
-    w, stop_cr, n_iter = L1_fista_solver(X_train, y_train, 0.01, grad_fn, lipschitz, w_init, max_iter = 500)
+    w, stop_cr, n_iter = L1_fista_solver(X_train, y_train, 0.001, grad_fn, lipschitz, w_init, max_iter = 500)
     assert stop_cr < 1e-4
     assert n_iter < 1000
     assert w.shape == (n_features,)
     idx = np.arange(n_features)
     w_true = ((-1) ** idx) * np.exp(-idx / 10)
     w_true[10:] = 0  # sparsify w_true
-    logging.info(f"n_iter = {n_iter}, stop_cr = {stop_cr}, w = {w}, w_true = {w_true}")
     y_pred = ic.predict_fn(X_test, w)
     #Testing
     accuracy = ic.accuracy(y_test, y_pred)
-    logging.info(f"Accuracy: {100*accuracy}%")
     idx = np.arange(n_features)
     w_true = ((-1) ** idx) * np.exp(-idx / 10)
-    logging.info(f"Coefficient error: {np.linalg.norm(w - w_true)}")
+    logging.info(f"\nn_iter: {n_iter}\nstop_cr: {stop_cr:.3e}\nAccuracy: {100*accuracy:.1f}%\nCoefficient error: {np.linalg.norm(w - w_true):.3e}")
